@@ -7,10 +7,10 @@ let history = [];
 let rolling = false;
 
 // 各面のラベル順（CSSのface1～6に対応）
-// 偶数面はマニア、奇数面はシニアと仮定
+// 1,3,5: シニア  2,4,6: マニア
 const faceLabels = ['シニア', 'マニア', 'シニア', 'マニア', 'シニア', 'マニア'];
 
-// 回転角度候補（X軸、Y軸）を6面それぞれに対応させる
+// 各面に対応する回転角度（X軸、Y軸）
 const rotations = [
   { x: 0,   y: 0   },   // face1 - シニア (正面)
   { x: 0,   y: -90 },   // face2 - マニア
@@ -25,20 +25,20 @@ function rollDice() {
   rolling = true;
   resultText.textContent = '';
 
-  // ランダムな面を選ぶ（0〜5）
+  // ランダムに出す面を決める
   const faceIndex = Math.floor(Math.random() * 6);
   const rotation = rotations[faceIndex];
 
-  // 2秒の回転アニメーションを設定
-  // 2回転以上させて派手に見せる
+  // 2回転（720度）させてから目的の角度へ回転
   const extraTurns = 2;
   const xDeg = 360 * extraTurns + rotation.x;
   const yDeg = 360 * extraTurns + rotation.y;
 
+  // CSSトランスフォームで回転開始
   dice.style.transition = 'transform 2s cubic-bezier(0.23, 1, 0.32, 1)';
   dice.style.transform = `rotateX(${xDeg}deg) rotateY(${yDeg}deg)`;
 
-  // アニメーション終了後に結果表示・履歴追加
+  // 2秒後に結果表示・履歴追加
   setTimeout(() => {
     const label = faceLabels[faceIndex];
     resultText.textContent = `結果: ${label}`;
@@ -62,4 +62,8 @@ function renderHistory() {
   });
 }
 
+// ボタンクリックで振る
 rollBtn.addEventListener('click', rollDice);
+
+// 初期表示の結果テキストは空
+resultText.textContent = '';
