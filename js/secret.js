@@ -1,69 +1,46 @@
-const dice = document.getElementById('dice');
-const rollBtn = document.getElementById('rollBtn');
-const resultText = document.getElementById('result');
-const historyList = document.getElementById('historyList');
+const flipper = document.getElementById('flipper');
+const toggleBtn = document.getElementById('toggleBtn');
+const resultDiv = document.getElementById('result');
 
-let history = [];
-let rolling = false;
+let intervalId;
+let showingMania = true;
+let running = true;
 
-// 各面のラベル順（CSSのface1～6に対応）
-// 1,3,5: シニア  2,4,6: マニア
-const faceLabels = ['シニア', 'マニア', 'シニア', 'マニア', 'シニア', 'マニア'];
-
-// 各面に対応する回転角度（X軸、Y軸）
-const rotations = [
-  { x: 0,   y: 0   },   // face1 - シニア (正面)
-  { x: 0,   y: -90 },   // face2 - マニア
-  { x: 0,   y: 180 },   // face3 - シニア
-  { x: 0,   y: 90  },   // face4 - マニア
-  { x: 90,  y: 0   },   // face5 - シニア (上)
-  { x: -90, y: 0   }    // face6 - マニア (下)
-];
-
-function rollDice() {
-  if (rolling) return; // 回転中は無効化
-  rolling = true;
-  resultText.textContent = '';
-
-  // ランダムに出す面を決める
-  const faceIndex = Math.floor(Math.random() * 6);
-  const rotation = rotations[faceIndex];
-
-  // 2回転（720度）させてから目的の角度へ回転
-  const extraTurns = 2;
-  const xDeg = 360 * extraTurns + rotation.x;
-  const yDeg = 360 * extraTurns + rotation.y;
-
-  // CSSトランスフォームで回転開始
-  dice.style.transition = 'transform 2s cubic-bezier(0.23, 1, 0.32, 1)';
-  dice.style.transform = `rotateX(${xDeg}deg) rotateY(${yDeg}deg)`;
-
-  // 2秒後に結果表示・履歴追加
-  setTimeout(() => {
-    const label = faceLabels[faceIndex];
-    resultText.textContent = `結果: ${label}`;
-    addHistory(label);
-    rolling = false;
-  }, 2000);
+function startFlipping() {
+  intervalId = setInterval(() => {
+    flipper.textContent = showingMania ? 'シニア' : 'マニア';
+    showingMania = !showingMania;
+  }, 100);
 }
 
-function addHistory(result) {
-  history.unshift(result);
-  if (history.length > 10) history.pop();
-  renderHistory();
+function stopFlipping() {
+  clearInterval(intervalId);
+  running = false;
+  toggleBtn.textContent = 'リセット';
+
+  if(flipper.textContent === 'マニア') {
+    resultDiv.textContent = 'あなたは「マニア」タイプ！鋭い感性の持ち主です。';
+  } else {
+    resultDiv.textContent = 'あなたは「シニア」タイプ！落ち着いた知識人ですね。';
+  }
 }
 
-function renderHistory() {
-  historyList.innerHTML = '';
-  history.forEach((res, i) => {
-    const li = document.createElement('li');
-    li.textContent = `${i + 1}回目: ${res}`;
-    historyList.appendChild(li);
-  });
+function resetFlipping() {
+  resultDiv.textContent = '';
+  toggleBtn.textContent = 'ストップ';
+  running = true;
+  showingMania = true;
+  flipper.textContent = 'マニア';
+  startFlipping();
 }
 
-// ボタンクリックで振る
-rollBtn.addEventListener('click', rollDice);
+toggleBtn.addEventListener('click', () => {
+  if(running) {
+    stopFlipping();
+  } else {
+    resetFlipping();
+  }
+});
 
-// 初期表示の結果テキストは空
-resultText.textContent = '';
+// ページロード時に開始
+startFlipping();
