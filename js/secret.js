@@ -1,39 +1,55 @@
-
-const diceEl = document.getElementById('dice');
+const dice = document.getElementById('dice');
 const rollBtn = document.getElementById('rollBtn');
+const resultText = document.getElementById('result');
 const historyList = document.getElementById('historyList');
 
 let history = [];
+let rolling = false;
+
+// 各面のラベル順（CSSのface1～6に対応）
+// 偶数面はマニア、奇数面はシニアと仮定
+const faceLabels = ['シニア', 'マニア', 'シニア', 'マニア', 'シニア', 'マニア'];
+
+// 回転角度候補（X軸、Y軸）を6面それぞれに対応させる
+const rotations = [
+  { x: 0,   y: 0   },   // face1 - シニア (正面)
+  { x: 0,   y: -90 },   // face2 - マニア
+  { x: 0,   y: 180 },   // face3 - シニア
+  { x: 0,   y: 90  },   // face4 - マニア
+  { x: 90,  y: 0   },   // face5 - シニア (上)
+  { x: -90, y: 0   }    // face6 - マニア (下)
+];
 
 function rollDice() {
-  // アニメーション開始
-  diceEl.classList.add('rolling');
-  rollBtn.disabled = true;
+  if (rolling) return; // 回転中は無効化
+  rolling = true;
+  resultText.textContent = '';
 
+  // ランダムな面を選ぶ（0〜5）
+  const faceIndex = Math.floor(Math.random() * 6);
+  const rotation = rotations[faceIndex];
+
+  // 2秒の回転アニメーションを設定
+  // 2回転以上させて派手に見せる
+  const extraTurns = 2;
+  const xDeg = 360 * extraTurns + rotation.x;
+  const yDeg = 360 * extraTurns + rotation.y;
+
+  dice.style.transition = 'transform 2s cubic-bezier(0.23, 1, 0.32, 1)';
+  dice.style.transform = `rotateX(${xDeg}deg) rotateY(${yDeg}deg)`;
+
+  // アニメーション終了後に結果表示・履歴追加
   setTimeout(() => {
-    diceEl.classList.remove('rolling');
-
-    // 1〜6のランダム数値生成
-    const num = Math.floor(Math.random() * 6) + 1;
-
-    // 1〜3ならシニア、4〜6ならマニア
-    const result = num <= 3 ? 'シニア' : 'マニア';
-
-    // 結果表示
-    diceEl.textContent = result;
-
-    // 履歴追加
-    addHistory(result);
-
-    rollBtn.disabled = false;
-  }, 700);
+    const label = faceLabels[faceIndex];
+    resultText.textContent = `結果: ${label}`;
+    addHistory(label);
+    rolling = false;
+  }, 2000);
 }
 
 function addHistory(result) {
   history.unshift(result);
-  if (history.length > 10) {
-    history.pop();
-  }
+  if (history.length > 10) history.pop();
   renderHistory();
 }
 
@@ -47,6 +63,3 @@ function renderHistory() {
 }
 
 rollBtn.addEventListener('click', rollDice);
-
-// 初期表示は「振る」表示
-diceEl.textContent = '振る';
